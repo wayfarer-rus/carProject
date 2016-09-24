@@ -1,0 +1,12 @@
+[Unit]
+Description=Nogui car driver
+Required=bluetooth.target
+After=bluetooth.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/alarm/carDriverApp/
+ExecStart=/home/alarm/carDriverApp/carDriver.py
+
+[Install]
+WantedBy=multi-user.target
