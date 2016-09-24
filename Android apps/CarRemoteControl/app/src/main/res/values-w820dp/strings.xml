@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="permission_failure">Whithout location permissions BT device can\'t lookup for surroundings. It is strange, but for somehow it is necessary. You may pair car manually, though.</string>
+    <string name="front_lab">front</string>
+    <string name="front_right_lab">right-front</string>
+    <string name="right_lab">right</string>
+    <string name="right_bottom_lab">right-bottom</string>
+    <string name="bottom_lab">bottom</string>
+    <string name="bottom_left_lab">left-bottom</string>
+    <string name="left_lab">left</string>
+    <string name="left_front_lab">left-front</string>
+    <string name="center_lab">center</string>
+</resources>

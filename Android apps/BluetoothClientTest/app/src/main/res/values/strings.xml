@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">BluetoothClientTest</string>
+    <string name="permission_failure">Permissions failure</string>
+</resources>

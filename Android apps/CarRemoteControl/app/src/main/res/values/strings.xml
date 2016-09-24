@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">CarRemoteControl</string>
+    <string name="permission_failure">Whithout location permissions BT device can\'t lookup for surroundings. It is strange, but for somehow it is necessary. You may pair car manually, though.</string>
+    <string name="front_lab" translatable="false">front</string>
+    <string name="front_right_lab" translatable="false">right-front</string>
+    <string name="right_lab" translatable="false">right</string>
+    <string name="right_bottom_lab" translatable="false">right-bottom</string>
+    <string name="bottom_lab" translatable="false">bottom</string>
+    <string name="bottom_left_lab" translatable="false">left-bottom</string>
+    <string name="left_lab" translatable="false">left</string>
+    <string name="left_front_lab" translatable="false">left-front</string>
+    <string name="center_lab" translatable="false">center</string>
+</resources>
