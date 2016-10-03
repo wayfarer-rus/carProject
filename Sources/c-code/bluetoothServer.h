@@ -22,5 +22,10 @@ static void *acceptFunction(void *ptr);
 static void *readerLoop(void *ptr);
 static void *writerLoop(void *ptr);
 
-void initBTServer();
+static void (*_acceptCallback)();
+static void (*_readerCallback)(char*,int);
+static void (*_disconnectCallback)();
+
+void initBTServer(void (*acceptCallback)(), void (*readerCallback)(char*,int), void (*disconnectCallback)());
 void stopBTServer();
+void btWrite(char *buf, int size);

@@ -1,6 +1,9 @@
 #include "bluetoothServer.h"
 
-void initBTServer() {
+void initBTServer(void (*acceptCallback)(), void (*readerCallback)(char*,int), void (*disconnectCallback)()) {
+  _readerCallback = readerCallback;
+  _acceptCallback = acceptCallback;
+  _disconnectCallback = disconnectCallback;
   // allocate socket
   socketHandler = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
 
@@ -16,7 +19,7 @@ void initBTServer() {
   int retval;
   retval = pthread_create(&acceptThread, NULL, acceptFunction, NULL);
   if(retval) {
-    fprintf(stderr,"Error - pthread_create() return code: %d\n",iret1);
+    fprintf(stderr,"Error - pthread_create() return code: %d\n",retval);
     exit(EXIT_FAILURE);
   }
 }
@@ -26,16 +29,17 @@ void *acceptFunction(void *ptr) {
   clientHandler = accept(socketHandler, (struct sockaddr *)&rem_addr, &opt);
   ba2str( &rem_addr.rc_bdaddr, buf );
   fprintf(stderr, "accepted connection from %s\n", buf);
+  _acceptCallback();
   int retval;
   retval = pthread_create(&readerThread, NULL, readerLoop, NULL);
   if(retval) {
-    fprintf(stderr,"Error - pthread_create() return code: %d\n",iret1);
+    fprintf(stderr,"Error - pthread_create() return code: %d\n",retval);
     exit(EXIT_FAILURE);
   }
 
   retval = pthread_create(&writerThread, NULL, writerLoop, NULL);
   if(retval) {
-    fprintf(stderr,"Error - pthread_create() return code: %d\n",iret1);
+    fprintf(stderr,"Error - pthread_create() return code: %d\n",retval);
     exit(EXIT_FAILURE);
   }
 }
@@ -44,14 +48,15 @@ void *readerLoop(void *ptr) {
   char buf[1024] = { 0 };
   memset(buf, 0, sizeof(buf));
   reader_loop = true;
+  int bytes_read = 0;
 
   while (reader_loop) {
     // read data from the client
     bytes_read = read(clientHandler, buf, sizeof(buf));
     if( bytes_read > 0 ) {
         printf("received [%s]\n", buf);
+        _readerCallback(buf, bytes_read);
     }
-    // TODO: send data to main loop
   }
 
 }
@@ -71,11 +76,15 @@ void *writerLoop(void *ptr) {
       if (status < 0) {
         perror("Error while writint to bluetoth client");
         writer_loop = false;
-        // TODO:: signal to the main-loop that client is not available
+        _disconnectCallback();
         break;
       }
     }
   }
+}
+
+void btWrite(char *buf, int size) {
+  // TODO::
 }
 
 void stopBTServer() {
