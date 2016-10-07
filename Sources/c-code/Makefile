@@ -1,16 +1,16 @@
-CC=gcc -std=c99 -pthread -O3
+CC=gcc -pthread -O3
 CFLAGS=-I. -I/opt/vc/include/interface/mmal -I/opt/vc/include -lbluetooth
-DEPS=bluetoothServer.h
-OBJ=main.o bluetoothServer.o
+DEPS=bluetoothServer.h cameramodule.h RaspiCLI.h RaspiCamControl.h
+OBJ=main.o bluetoothServer.o cameramodule.o RaspiCamControl.o RaspiCLI.o
 BIN=car-driver
 LDIR=/opt/vc/lib/
-LDFLAGS+=-lmmal -lmmal_core -lmmal_util -lvcos -lpthread -lbcm_host -pthread -lbluetooth
+LDFLAGS+=-lmmal -lmmal_core -lmmal_util -lvcos -lpthread -lbcm_host
 
 %.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 all: $(OBJ)
-	$(CC) -o $(BIN) $^ $(CFLAGS) -L$(LDIR) $(LSFLAGS)
+	$(CC) -o $(BIN) $^ $(CFLAGS) -L$(LDIR) $(LDFLAGS)
 
 .PHONY: clean
 

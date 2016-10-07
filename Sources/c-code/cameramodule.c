@@ -1,5 +1,13 @@
 #include "cameramodule.h"
 
+// Max bitrate we allow for recording
+const int MAX_BITRATE_MJPEG = 25000000; // 25Mbits/s
+const int MAX_BITRATE_LEVEL4 = 25000000; // 25Mbits/s
+const int MAX_BITRATE_LEVEL42 = 62500000; // 62.5Mbits/s
+
+/// Interval at which we check for an failure abort during capture
+const int ABORT_INTERVAL = 100; // ms
+
 /**
  * Assign a default set of parameters to the state passed in
  *
@@ -53,10 +61,6 @@ static void default_status(RASPIVID_STATE *state)
    state->frame = 0;
    state->save_pts = 0;
 
-
-   // Setup preview window defaults
-   raspipreview_set_defaults(&state->preview_parameters);
-
    // Set up the camera_parameters to default
    raspicamcontrol_set_defaults(&state->camera_parameters);
 }
@@ -97,7 +101,6 @@ static void dump_status(RASPIVID_STATE *state)
    fprintf(stderr, "\nInitial state '%s'\n", raspicli_unmap_xref(state->bCapturing, initial_map, initial_map_size));
    fprintf(stderr, "\n\n");
 
-   raspipreview_dump_parameters(&state->preview_parameters);
    raspicamcontrol_dump_parameters(&state->camera_parameters);
 }
 
@@ -493,8 +496,6 @@ static MMAL_STATUS_T create_camera_component(RASPIVID_STATE *state)
    format->es->video.crop.y = 0;
    format->es->video.crop.width = state->width;
    format->es->video.crop.height = state->height;
-   format->es->video.frame_rate.num = PREVIEW_FRAME_RATE_NUM;
-   format->es->video.frame_rate.den = PREVIEW_FRAME_RATE_DEN;
 
    status = mmal_port_format_commit(preview_port);
 
@@ -1102,7 +1103,7 @@ void initCameraModule(void (*bufferReadyCallback)(char *buff, int buff_len)) {
 
   if (state.verbose)
     {
-      fprintf(stderr, "\n%s Camera App %s\n\n", basename(argv[0]), VERSION_STRING);
+      fprintf(stderr, "\n%s Camera App %s\n\n", "cameramodule", VERSION_STRING);
       dump_status(&state);
     }
 }
@@ -1123,6 +1124,7 @@ void stopCameraModule() {
 }
 
 void *cameraLoop(void *ptr) {
+  int exit_code;
   // OK, we have a nice set of parameters. Now set up our components
   // We have two components. Camera and encoder.
 
@@ -1134,7 +1136,6 @@ void *cameraLoop(void *ptr) {
   else if ((status = create_encoder_component(&state)) != MMAL_SUCCESS)
     {
       vcos_log_error("%s: Failed to create encode component", __func__);
-      raspipreview_destroy(&state.preview_parameters);
       destroy_camera_component(&state);
       exit_code = EX_SOFTWARE;
     }

@@ -1,6 +1,7 @@
 // We use some GNU extensions (basename)
 #define _GNU_SOURCE
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,7 +27,6 @@
 #include "interface/mmal/util/mmal_connection.h"
 
 #include "RaspiCamControl.h"
-#include "RaspiPreview.h"
 #include "RaspiCLI.h"
 
 #include <semaphore.h>
@@ -42,15 +42,6 @@
 
 /// Video render needs at least 2 buffers.
 #define VIDEO_OUTPUT_BUFFERS_NUM 3
-
-// Max bitrate we allow for recording
-const int MAX_BITRATE_MJPEG = 25000000; // 25Mbits/s
-const int MAX_BITRATE_LEVEL4 = 25000000; // 25Mbits/s
-const int MAX_BITRATE_LEVEL42 = 62500000; // 62.5Mbits/s
-
-/// Interval at which we check for an failure abort during capture
-const int ABORT_INTERVAL = 100; // ms
-
 
 /// Capture/Pause switch method
 /// Simply capture for time specified
@@ -124,7 +115,6 @@ struct RASPIVID_STATE_S
    int splitNow;                       /// Split at next possible i-frame if set to 1.
    int splitWait;                      /// Switch if user wants splited files
 
-   RASPIPREVIEW_PARAMETERS preview_parameters;   /// Preview setup parameters
    RASPICAM_CAMERA_PARAMETERS camera_parameters; /// Camera setup parameters
 
    MMAL_COMPONENT_T *camera_component;    /// Pointer to the camera component
@@ -151,7 +141,6 @@ struct RASPIVID_STATE_S
    int64_t starttime;
    int64_t lasttime;
 };
-
 
 /// Structure to cross reference H264 profile strings against the MMAL parameter equivalent
 static XREF_T  profile_map[] =
