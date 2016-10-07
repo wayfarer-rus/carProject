@@ -7,6 +7,8 @@
 #include <pthread.h>
 #include <stdbool.h>
 
+#include "queue.h"
+
 static struct sockaddr_rc loc_addr = { 0 };
 static struct sockaddr_rc rem_addr = { 0 };
 static int socketHandler;
@@ -17,6 +19,7 @@ static pthread_t readerThread;
 static pthread_t writerThread;
 static bool reader_loop;
 static bool writer_loop;
+static Queue * queue;
 
 static void *acceptFunction(void *ptr);
 static void *readerLoop(void *ptr);

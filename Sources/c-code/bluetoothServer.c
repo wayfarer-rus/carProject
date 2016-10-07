@@ -1,4 +1,7 @@
 #include "bluetoothServer.h"
+#include <pthread.h>
+
+static pthread_mutex_t queue_mutex;
 
 void initBTServer(void (*acceptCallback)(), void (*readerCallback)(char*,int), void (*disconnectCallback)()) {
   _readerCallback = readerCallback;
@@ -22,6 +25,8 @@ void initBTServer(void (*acceptCallback)(), void (*readerCallback)(char*,int), v
     fprintf(stderr,"Error - pthread_create() return code: %d\n",retval);
     exit(EXIT_FAILURE);
   }
+
+  queue = initQueue();
 }
 
 void *acceptFunction(void *ptr) {
@@ -62,16 +67,18 @@ void *readerLoop(void *ptr) {
 }
 
 void *writerLoop(void *ptr) {
-  char buf[1024] = { 0 };
-  memset(buf, 0, sizeof(buf));
   writer_loop = true;
-  bool ready = false;
   int status;
 
   while (writer_loop) {
-    // TODO: prepare buffer
-    if (ready) {
+    pthread_mutex_lock(&queue_mutex);
+    char *buf = (char *)takeFromQueue(queue);
+    pthread_mutex_unlock(&queue_mutex);
+
+    if (buf != NULL) {
       status = write(clientHandler, buf, sizeof(buf));
+      free(buf);
+      buf = NULL;
 
       if (status < 0) {
         perror("Error while writint to bluetoth client");
@@ -84,7 +91,9 @@ void *writerLoop(void *ptr) {
 }
 
 void btWrite(char *buf, int size) {
-  // TODO::
+  pthread_mutex_lock(&queue_mutex);
+  pushToQueue(queue, (void*)buf);
+  pthread_mutex_unlock(&queue_mutex);
 }
 
 void stopBTServer() {
@@ -95,4 +104,5 @@ void stopBTServer() {
   // close connection
   close(clientHandler);
   close(socketHandler);
+  destroyQueue(queue);
 }
